@@ -13,6 +13,10 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 
+from carts.views import _cart_id
+from carts.models import Cart, CartItem
+import requests
+
 def register(request):
     if request.method == "POST":
         form = RegistrationForm(request.POST)
@@ -57,10 +61,52 @@ def login(request):
         user = auth.authenticate(email=email, password=password)
 
         if user is not None:
+            try:
+                cart = Cart.objects.get(cart_id=_cart_id(request))
+                is_cart_item_exists = CartItem.objects.filter(cart=cart).exists()
+                if is_cart_item_exists:
+                    guest_cart_items = CartItem.objects.filter(cart=cart)
+
+                    #Getting product variations by cart id
+                    # Get the cart items from the user to access their product variation
+                    user_cart_items = CartItem.objects.filter(user=user)
+                    ex_var_list = []
+                    id = []
+                    for item in user_cart_items:
+                        existing_variation = item.variations.all()
+                        ex_var_list.append(list(existing_variation))
+                        id.append(item.id)
+
+                    for item in guest_cart_items:
+                        product_variation = list(item.variations.all())
+
+                        if product_variation in ex_var_list:
+                            index = ex_var_list.index(product_variation)
+                            item_id = id[index]
+                            existing_item = CartItem.objects.get(id=item_id)
+                            existing_item.quantity += item.quantity
+                            existing_item.user = user
+                            existing_item.save()
+                        else:
+                            item.user = user
+                            item.cart = None
+                            item.save()
+
+            except Cart.DoesNotExist:
+                pass
             auth.login(request, user)
             messages.success(request, 'You are now logged in.')
             #  messages.success(request, 'You are now logged in.')
-            return redirect('dashboard')
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url).query
+                # next=/cart/checkout/
+                params = dict(x.split('=') for x in query.split('&'))
+                if 'next' in params:
+                    nextPage = params['next']
+                    return redirect(nextPage)
+            except:
+                return redirect('dashboard')
         else:
             messages.error(request, 'Invalid login credentials')
             return redirect('login')

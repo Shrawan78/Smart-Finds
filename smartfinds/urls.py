@@ -26,4 +26,7 @@ urlpatterns = [
     path('store/', include('store.urls')),
     path('cart/', include('carts.urls')),
     path('accounts/', include('accounts.urls')),
+    path('virtual-tryon/', views.virtual_tryon, name='virtual_tryon'),
+    path('image-search/', views.image_search, name='image_search'),
+    path('api/tryon/process-frame/', views.tryon_process_frame, name='tryon_process_frame'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

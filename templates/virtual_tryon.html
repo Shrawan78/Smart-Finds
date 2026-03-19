@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .tryon-page {
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    padding: 24px 20px 40px;
+  }
+
+  .tryon-header { text-align: center; margin-bottom: 20px; }
+  .tryon-header h1 {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .tryon-header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+  .tryon-viewport {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #e2e8f0;
+    box-shadow: 0 0 0 1px var(--card-border), 0 20px 60px rgba(0,0,0,0.1);
+    aspect-ratio: 16/9;
+  }
+
+  #videoEl { display: none; }
+  #outputCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  .cam-idle {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    gap: 14px;
+    transition: opacity 0.4s;
+  }
+  .cam-idle.hidden { opacity: 0; pointer-events: none; }
+  .cam-idle-icon {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1.5px solid var(--card-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    box-shadow: var(--shadow);
+  }
+  .cam-idle p { color: var(--muted); font-size: 0.9rem; }
+  .cam-idle strong { color: var(--accent); }
+
+  .nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: rgba(37,99,235,0.82);
+    color: #fff;
+    font-size: 34px;
+    font-weight: 300;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 20;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(37,99,235,0.3);
+    transition: background 0.2s, transform 0.15s;
+    line-height: 1;
+  }
+  .nav-btn:hover {
+    background: rgba(29,78,216,0.95);
+    transform: translateY(-50%) scale(1.08);
+  }
+  #prevBtn { left: 18px; }
+  #nextBtn { right: 18px; }
+
+  .ring-canvas {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 21;
+    display: none;
+  }
+  #ringLeft  { left: 18px; }
+  #ringRight { right: 18px; }
+
+  .cam-controls {
+    max-width: 960px;
+    margin: 14px auto 0;
+    display: flex;
+    gap: 10px;
+  }
+  .ctrl-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: var(--shadow);
+  }
+  .ctrl-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  #startBtn { background: var(--accent); color: #fff; }
+  #stopBtn  { background: #ef4444; color: #fff; }
+
+  .shirt-section { max-width: 960px; margin: 28px auto 0; }
+  .shirt-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .shirt-section-header h3 {
+    font-size: 0.95rem; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  }
+  .shirt-count {
+    font-size: 0.78rem; color: var(--muted);
+    background: #fff; border: 1px solid var(--card-border);
+    border-radius: 100px; padding: 2px 10px;
+  }
+
+  .shirt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    min-height: 150px;
+    align-content: start;
+  }
+  .shirt-card {
+    height: 140px;
+    border: 1.5px solid var(--card-border);
+    border-radius: 14px;
+    cursor: pointer;
+    overflow: hidden;
+    background: var(--card-bg);
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .shirt-card:hover {
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37,99,235,0.1);
+  }
+  .shirt-card.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+  .shirt-card img {
+    width: 100%; flex: 1;
+    object-fit: contain; padding: 8px;
+    background: #f8fafc;
+  }
+  .shirt-card span {
+    display: block; font-size: 10px;
+    text-align: center; padding: 5px 4px;
+    color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background: #fff; border-top: 1px solid var(--card-border);
+  }
+  .no-shirts { color: var(--muted); font-size: 0.85rem; padding: 20px 0; }
+</style>
+
+<div class="tryon-page">
+
+  <div class="tryon-header">
+    <h1>👕 Virtual Try-On</h1>
+    <p>Select a shirt and start your camera</p>
+  </div>
+
+  <div class="tryon-viewport">
+    <video id="videoEl" autoplay playsinline></video>
+    <canvas id="outputCanvas"></canvas>
+
+    <div class="cam-idle" id="camIdle">
+      <div class="cam-idle-icon">📷</div>
+      <p>Press <strong>Start Camera</strong> to begin</p>
+    </div>
+
+    <button class="nav-btn" id="prevBtn">&#8249;</button>
+    <button class="nav-btn" id="nextBtn">&#8250;</button>
+
+    <canvas class="ring-canvas" id="ringLeft"  width="64" height="64"></canvas>
+    <canvas class="ring-canvas" id="ringRight" width="64" height="64"></canvas>
+  </div>
+
+  <div class="cam-controls">
+    <button class="ctrl-btn" id="startBtn">▶ Start Camera</button>
+    <button class="ctrl-btn" id="stopBtn">⏹ Stop Camera</button>
+  </div>
+
+  <div class="shirt-section">
+    <div class="shirt-section-header">
+      <h3>Shirts</h3>
+      <span class="shirt-count">{{ shirts|length }} available</span>
+    </div>
+    {% if shirts %}
+      <div class="shirt-grid">
+        {% for shirt in shirts %}
+        <div class="shirt-card" data-filename="{{ shirt.filename }}">
+          <img src="{{ shirt.thumb_url }}" alt="{{ shirt.name }}">
+          <span>{{ shirt.name }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="no-shirts">No shirts found. Add PNG files to <code>static/tryon/shirts/</code></p>
+    {% endif %}
+  </div>
+
+</div>
+
+<canvas id="captureCanvas" style="display:none;"></canvas>
+
+<script>
+(function () {
+  const video         = document.getElementById('videoEl');
+  const outputCanvas  = document.getElementById('outputCanvas');
+  const captureCanvas = document.getElementById('captureCanvas');
+  const ringLeft      = document.getElementById('ringLeft');
+  const ringRight     = document.getElementById('ringRight');
+  const startBtn      = document.getElementById('startBtn');
+  const stopBtn       = document.getElementById('stopBtn');
+  const prevBtn       = document.getElementById('prevBtn');
+  const nextBtn       = document.getElementById('nextBtn');
+  const camIdle       = document.getElementById('camIdle');
+  const shirtCards    = document.querySelectorAll('.shirt-card');
+
+  const outCtx   = outputCanvas.getContext('2d');
+  const capCtx   = captureCanvas.getContext('2d');
+  const ringLCtx = ringLeft.getContext('2d');
+  const ringRCtx = ringRight.getContext('2d');
+
+  let stream        = null;
+  let running       = false;
+  let processing    = false;
+  let lastFrameTime = 0;
+  const TARGET_FPS  = 15;
+  const FRAME_MS    = 1000 / TARGET_FPS;
+
+  let shirtOverlay = null;
+  let shirtList    = [];
+  let imageNumber  = 0;
+  let counterLeft  = 0;
+  let counterRight = 0;
+  const SELECTION_SPEED = 20;
+  const TOTAL_DEGREES   = 180;
+
+  shirtCards.forEach(c => shirtList.push(c.dataset.filename));
+
+  function selectShirt(index) {
+    imageNumber = ((index % shirtList.length) + shirtList.length) % shirtList.length;
+    shirtCards.forEach((c, i) => c.classList.toggle('active', i === imageNumber));
+    shirtOverlay = null;
+    shirtCards[imageNumber]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  shirtCards.forEach((card, i) => card.addEventListener('click', () => selectShirt(i)));
+  if (shirtCards.length > 0) selectShirt(0);
+  prevBtn.addEventListener('click', () => selectShirt(imageNumber - 1));
+  nextBtn.addEventListener('click', () => selectShirt(imageNumber + 1));
+
+  function showStart() {
+    startBtn.style.visibility = '';
+    stopBtn.style.visibility  = 'hidden';
+  }
+  function showStop() {
+    startBtn.style.visibility = 'hidden';
+    stopBtn.style.visibility  = '';
+  }
+  showStart();
+
+  startBtn.addEventListener('click', async () => {
+    if (!shirtList.length) return;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+      video.srcObject = stream;
+      await video.play();
+      video.addEventListener('loadedmetadata', () => {
+        outputCanvas.width   = video.videoWidth;
+        outputCanvas.height  = video.videoHeight;
+        captureCanvas.width  = video.videoWidth;
+        captureCanvas.height = video.videoHeight;
+      }, { once: true });
+      running = true;
+      shirtOverlay = null;
+      camIdle.classList.add('hidden');
+      showStop();
+      requestAnimationFrame(loop);
+    } catch (err) {
+      console.error('Camera error:', err.message);
+    }
+  });
+
+  stopBtn.addEventListener('click', () => {
+    running = false;
+    shirtOverlay = null;
+    counterLeft = counterRight = 0;
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = null;
+    outCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+    ringLeft.style.display  = 'none';
+    ringRight.style.display = 'none';
+    camIdle.classList.remove('hidden');
+    showStart();
+  });
+
+  function drawRing(ctx, canvas, counter) {
+    const pct = Math.min((counter * SELECTION_SPEED) / TOTAL_DEGREES, 1);
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.beginPath();
+    ctx.arc(W/2, H/2, 24, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 6; ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(W/2, H/2, 24, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * pct);
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.stroke();
+  }
+
+  function loop(timestamp) {
+    if (!running) return;
+    if (video.readyState >= 2) {
+      outCtx.save();
+      outCtx.scale(-1, 1);
+      outCtx.drawImage(video, -outputCanvas.width, 0, outputCanvas.width, outputCanvas.height);
+      outCtx.restore();
+
+      if (shirtOverlay) {
+        outCtx.drawImage(
+          shirtOverlay.img,
+          shirtOverlay.x,
+          shirtOverlay.y,
+          shirtOverlay.nativeW,
+          shirtOverlay.nativeH
+        );
+      }
+    }
+    if (!processing && shirtList.length && (timestamp - lastFrameTime) >= FRAME_MS) {
+      lastFrameTime = timestamp;
+      processing    = true;
+      sendFrame().catch(e => console.warn(e)).finally(() => { processing = false; });
+    }
+    requestAnimationFrame(loop);
+  }
+
+  async function sendFrame() {
+    if (video.readyState < 2) return;
+    capCtx.save();
+    capCtx.scale(-1, 1);
+    capCtx.drawImage(video, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
+    capCtx.restore();
+
+    const frameB64 = captureCanvas.toDataURL('image/jpeg', 0.92);
+
+    const resp = await fetch("{% url 'tryon_process_frame' %}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ frame: frameB64, shirt: shirtList[imageNumber] }),
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (!data.success) return;
+
+    if (data.pose_detected && data.overlay) {
+      const o   = data.overlay;
+      const img = new Image();
+      // ✅ Store native dimensions for crisp rendering
+      img.onload = () => {
+        shirtOverlay = {
+          img,
+          x:       o.x,
+          y:       o.y,
+          width:   o.width,
+          height:  o.height,
+          nativeW: img.naturalWidth,   // actual PNG pixel width
+          nativeH: img.naturalHeight,  // actual PNG pixel height
+        };
+      };
+      img.src = 'data:image/png;base64,' + o.img;
+    } else {
+      shirtOverlay = null;
+    }
+
+    const gesture = data.gesture || 'none';
+    ringLeft.style.display  = 'none';
+    ringRight.style.display = 'none';
+
+    if (gesture === 'both') {
+      counterLeft = counterRight = 0;
+    } else if (gesture === 'left') {
+      counterLeft++;
+      ringRight.style.display = 'block';
+      drawRing(ringRCtx, ringRight, counterLeft);
+      if (counterLeft * SELECTION_SPEED >= TOTAL_DEGREES) {
+        counterLeft = 0; selectShirt(imageNumber + 1);
+      }
+    } else if (gesture === 'right') {
+      counterRight++;
+      ringLeft.style.display = 'block';
+      drawRing(ringLCtx, ringLeft, counterRight);
+      if (counterRight * SELECTION_SPEED >= TOTAL_DEGREES) {
+        counterRight = 0; selectShirt(imageNumber - 1);
+      }
+    } else {
+      counterLeft = counterRight = 0;
+    }
+  }
+})();
+</script>
+{% endblock %}
