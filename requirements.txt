@@ -68,7 +68,6 @@ protobuf==4.25.3
 pyarrow==22.0.0
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
-pycairo==1.29.0
 pycparser==3.0
 pydeck==0.9.1
 Pygments==2.19.2
@@ -88,7 +87,6 @@ reportlab==4.4.10
 requests==2.32.5
 requests-oauthlib==2.0.0
 rich==14.3.3
-rlPyCairo==0.4.0
 rpds-py==0.30.0
 scikit-learn==1.8.0
 scipy==1.17.0
