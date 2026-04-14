@@ -77,7 +77,7 @@ pyhanko-certvalidator==0.30.2
 pyOpenSSL==26.0.0
 pyparsing==3.3.2
 pypdf==6.10.0
-python-bidi==0.6.7
+python-bidi==0.4.2
 python-dateutil==2.9.0.post0
 python-decouple==3.8
 pytz==2025.2
