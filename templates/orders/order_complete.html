@@ -71,6 +71,7 @@
                       <strong>Order Date:</strong> {{order.created_at}}
                     </li>
                     <li><strong>Status:</strong> {{payment.status}}</li>
+                    <li><strong>Customer ID:</strong> {{order.user.client_id}}</li>
                   </ul>
                 </div>
               </div>
@@ -126,6 +127,22 @@
               </div>
               <div class="invoice-footer mt25">
                 <p class="text-center">Thank you for shopping with us!</p>
+              </div>
+              <div class="mt-4 text-center">
+                {% if not order.refund %}
+                  <a href="{% url 'request_refund' order.order_number %}" class="btn btn-outline-danger">
+                    🔄 Request a Refund
+                  </a>
+                {% else %}
+                  <p>Refund Status:
+                    <strong class="
+                      {% if order.refund.status == 'Approved' %}text-success
+                      {% elif order.refund.status == 'Rejected' %}text-danger
+                      {% else %}text-warning{% endif %}">
+                      {{ order.refund.status }}
+                    </strong>
+                  </p>
+                {% endif %}
               </div>
             </div>
             <!-- col-lg-12 end here -->

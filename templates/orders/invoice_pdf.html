@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 13px; color: #333; }
+    .header { margin-bottom: 30px; }
+    .logo { font-size: 22px; font-weight: bold; color: #007bff; }
+    .invoice-to { float: right; text-align: right; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; }
+    th { background-color: #f5f5f5; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .totals td, .totals th { border-top: 2px solid #333; }
+    .footer { margin-top: 30px; text-align: center; color: #777; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">SmartFinds</div>
+    <div class="invoice-to">
+      <strong>Invoiced To</strong><br>
+      {{ order.full_name }}<br>
+      {{ order.full_address }}<br>
+      {{ order.city }}, {{ order.state }}<br>
+      {{ order.country }}
+    </div>
+    <div style="clear:both;"></div>
+  </div>
+
+  <div>
+    <p><strong>Order:</strong> {{ order_number }}</p>
+    <p><strong>Transaction ID:</strong> {{ transID }}</p>
+    <p><strong>Order Date:</strong> {{ order.created_at }}</p>
+    <p><strong>Status:</strong> {{ payment.status }}</p>
+    <p><strong>Customer ID:</strong> {{ order.user.client_id }}</p>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Products</th>
+        <th class="text-center">Qty</th>
+        <th class="text-center">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in ordered_products %}
+      <tr>
+        <td>
+          {{ item.product.product_name }}
+          {% if item.variations.all %}
+            <br>
+            {% for v in item.variations.all %}
+              <small>{{ v.variation_category|capfirst }}: {{ v.variation_value|capfirst }}</small><br>
+            {% endfor %}
+          {% endif %}
+        </td>
+        <td class="text-center">{{ item.quantity }}</td>
+        <td class="text-center">${{ item.product_price }} USD</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><th colspan="2" class="text-right">Sub Total:</th><th class="text-center">${{ subtotal }} USD</th></tr>
+      <tr><th colspan="2" class="text-right">Tax:</th><th class="text-center">${{ order.tax }} USD</th></tr>
+      <tr class="totals"><th colspan="2" class="text-right">Grand Total:</th><th class="text-center">${{ order.order_total }} USD</th></tr>
+    </tfoot>
+  </table>
+
+  <div class="footer">Thank you for shopping with us!</div>
+</body>
+</html>

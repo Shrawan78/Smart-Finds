@@ -68,12 +68,12 @@
 	</td>
 	<td>
 		<div class="price-wrap">
-			<var class="price">$ {{ cart_item.sub_total }}</var>
-			<small class="text-muted">$ {{ cart_item.product.price }} each </small>
+			<var class="price">NPR {{ cart_item.sub_total }}</var>
+			<small class="text-muted">NPR {{ cart_item.product.price }} each </small>
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right">
-	<a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}" onclick="return confirm('Are you sure you want to delete this item?')" class="btn btn-danger"> Remove</a>
+	<a href="#" onclick="confirmDelete('{% url 'remove_cart_item' cart_item.product.id cart_item.id %}')" class="btn btn-danger"> Remove</a>
 	</td>
 </tr>
 {% endfor %}
@@ -89,15 +89,15 @@
 		<div class="card-body">
 			<dl class="dlist-align">
 			  <dt>Total price:</dt>
-			  <dd class="text-right">$ {{total}}</dd>
+			  <dd class="text-right">NPR {{total}}</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Tax:</dt>
-			  <dd class="text-right"> $ {{tax}}</dd>
+			  <dd class="text-right">NPR {{tax}}</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Grand Total:</dt>
-			  <dd class="text-right text-dark b"><strong>$ {{grand_total}}</strong></dd>
+			  <dd class="text-right text-dark b"><strong>NPR {{grand_total}}</strong></dd>
 			</dl>
 			<hr>
 			<p class="text-center mb-3">

@@ -2,39 +2,105 @@
 {% load static %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --accent: #2563eb;
-    --accent-dark: #1d4ed8;
-    --bg: #f8fafc;
-    --card-bg: #ffffff;
-    --card-border: #e2e8f0;
-    --text: #0f172a;
-    --muted: #64748b;
-    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --accent:       #2563eb;
+    --accent-dark:  #1d4ed8;
+    --accent-g:     #7c3aed;
+    --accent-photo: #0d9488;
+    --bg:           #f1f5f9;
+    --card-bg:      #ffffff;
+    --card-border:  #e2e8f0;
+    --text:         #0f172a;
+    --muted:        #64748b;
+    --shadow-sm:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow:       0 4px 24px rgba(0,0,0,0.08);
+    --shadow-lg:    0 12px 40px rgba(0,0,0,0.13);
+    --radius:       18px;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   .tryon-page {
     background: var(--bg);
     min-height: 100vh;
     color: var(--text);
-    font-family: 'Outfit', sans-serif;
-    padding: 24px 20px 40px;
+    font-family: 'DM Sans', sans-serif;
+    padding: 28px 20px 80px;
   }
 
-  .tryon-header { text-align: center; margin-bottom: 20px; }
-  .tryon-header h1 {
-    font-size: clamp(1.4rem, 3vw, 2rem);
-    font-weight: 700;
+  /* ── Page header ── */
+  .mode-header { text-align: center; margin-bottom: 32px; }
+  .mode-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 400;
     letter-spacing: -0.5px;
     color: var(--text);
   }
-  .tryon-header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+  .mode-header p { font-size: 0.88rem; color: var(--muted); margin-top: 6px; }
 
+  /* ── Top mode selector ── */
+  .top-mode-selector {
+    display: flex;
+    gap: 14px;
+    max-width: 540px;
+    margin: 0 auto 36px;
+  }
+  .top-mode-card {
+    flex: 1;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 26px 18px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .2s, box-shadow .2s, transform .15s;
+    box-shadow: var(--shadow);
+  }
+  .top-mode-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .top-mode-card.active-webcam { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+  .top-mode-card.active-photo  { border-color: var(--accent-photo); box-shadow: 0 0 0 3px rgba(13,148,136,.15); }
+  .top-mode-icon  { font-size: 42px; line-height: 1; margin-bottom: 10px; }
+  .top-mode-label { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .top-mode-sub   { font-size: 0.77rem; color: var(--muted); line-height: 1.45; }
+
+  /* ── Top panels ── */
+  .top-panel { display: none; }
+  .top-panel.visible { display: block; }
+
+  /* ── Webcam sub-mode selector ── */
+  .mode-selector {
+    display: flex;
+    gap: 14px;
+    max-width: 580px;
+    margin: 0 auto 28px;
+  }
+  .mode-card {
+    flex: 1;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 24px 18px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .2s, box-shadow .2s, transform .15s;
+    box-shadow: var(--shadow);
+  }
+  .mode-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .mode-card.active-shirt   { border-color: var(--accent);   box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+  .mode-card.active-glasses { border-color: var(--accent-g); box-shadow: 0 0 0 3px rgba(124,58,237,.15); }
+  .mode-icon  { font-size: 44px; line-height: 1; margin-bottom: 10px; }
+  .mode-label { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .mode-sub   { font-size: 0.77rem; color: var(--muted); }
+
+  /* ── Sub-panels ── */
+  .panel { display: none; }
+  .panel.visible { display: block; }
+
+  /* ── Viewport ── */
   .tryon-viewport {
     position: relative;
     width: 100%;
@@ -43,407 +109,984 @@
     border-radius: 20px;
     overflow: hidden;
     background: #e2e8f0;
-    box-shadow: 0 0 0 1px var(--card-border), 0 20px 60px rgba(0,0,0,0.1);
+    box-shadow: 0 0 0 1px var(--card-border), 0 20px 60px rgba(0,0,0,.1);
     aspect-ratio: 16/9;
-  }
-
-  #videoEl { display: none; }
-  #outputCanvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    image-rendering: crisp-edges;
-    image-rendering: -webkit-optimize-contrast;
-  }
-
-  .cam-idle {
-    position: absolute;
-    inset: 0;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
+  .status-panel {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; padding: 40px; text-align: center; width: 100%; height: 100%;
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    gap: 14px;
-    transition: opacity 0.4s;
   }
-  .cam-idle.hidden { opacity: 0; pointer-events: none; }
-  .cam-idle-icon {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    background: #fff;
-    border: 1.5px solid var(--card-border);
+  .status-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: #fff; border: 1.5px solid var(--card-border);
     display: flex; align-items: center; justify-content: center;
-    font-size: 32px;
-    box-shadow: var(--shadow);
+    font-size: 36px; box-shadow: var(--shadow);
   }
-  .cam-idle p { color: var(--muted); font-size: 0.9rem; }
-  .cam-idle strong { color: var(--accent); }
+  .status-panel.running .status-icon { background: #dcfce7; border-color: #86efac; animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,.4); }
+    50%       { box-shadow: 0 0 0 16px rgba(34,197,94,0); }
+  }
+  .status-title { font-size: 1.1rem; font-weight: 600; }
+  .status-sub   { font-size: 0.83rem; color: var(--muted); max-width: 340px; line-height: 1.55; }
+  .status-sub strong { color: var(--accent); }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 14px; border-radius: 100px; font-size: 0.76rem; font-weight: 600;
+    background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;
+  }
+  .status-badge.running { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+  .status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .status-badge.running .dot { animation: blink 1s infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 
-  .nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    background: rgba(37,99,235,0.82);
-    color: #fff;
-    font-size: 34px;
-    font-weight: 300;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 20;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 20px rgba(37,99,235,0.3);
-    transition: background 0.2s, transform 0.15s;
-    line-height: 1;
-  }
-  .nav-btn:hover {
-    background: rgba(29,78,216,0.95);
-    transform: translateY(-50%) scale(1.08);
-  }
-  #prevBtn { left: 18px; }
-  #nextBtn { right: 18px; }
-
-  .ring-canvas {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    z-index: 21;
-    display: none;
-  }
-  #ringLeft  { left: 18px; }
-  #ringRight { right: 18px; }
-
-  .cam-controls {
-    max-width: 960px;
-    margin: 14px auto 0;
-    display: flex;
-    gap: 10px;
-  }
+  /* ── Controls ── */
+  .cam-controls { max-width: 960px; margin: 12px auto 0; display: flex; gap: 10px; }
   .ctrl-btn {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    font-family: 'Outfit', sans-serif;
-    transition: opacity 0.2s, transform 0.15s;
-    box-shadow: var(--shadow);
+    flex: 1; padding: 13px; border: none; border-radius: 12px; cursor: pointer;
+    font-size: 0.9rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    transition: opacity .2s, transform .15s; box-shadow: var(--shadow);
   }
-  .ctrl-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-  #startBtn { background: var(--accent); color: #fff; }
-  #stopBtn  { background: #ef4444; color: #fff; }
+  .ctrl-btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+  .ctrl-btn:not(:disabled):hover { opacity: .85; transform: translateY(-1px); }
+  .btn-shirt-start   { background: var(--accent);  color: #fff; }
+  .btn-shirt-stop    { background: #ef4444;         color: #fff; }
+  .btn-glasses-start { background: var(--accent-g); color: #fff; }
+  .btn-glasses-stop  { background: #ef4444;         color: #fff; }
 
-  .shirt-section { max-width: 960px; margin: 28px auto 0; }
-  .shirt-section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px;
+  /* ══════════════════════════════
+     ITEM GRID (webcam mode)
+  ══════════════════════════════ */
+  .item-section { max-width: 960px; margin: 28px auto 0; }
+  .item-section-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
   }
-  .shirt-section-header h3 {
-    font-size: 0.95rem; font-weight: 600;
-    color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  .item-section-header h3 {
+    font-size: 0.82rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.1px;
   }
-  .shirt-count {
-    font-size: 0.78rem; color: var(--muted);
+  .item-count {
+    font-size: 0.76rem; color: var(--muted);
     background: #fff; border: 1px solid var(--card-border);
     border-radius: 100px; padding: 2px 10px;
   }
 
-  .shirt-grid {
+  .item-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 10px;
-    min-height: 150px;
-    align-content: start;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
   }
-  .shirt-card {
-    height: 140px;
+
+  /* ── Item card with Add to Cart ── */
+  .item-card {
+    background: var(--card-bg);
     border: 1.5px solid var(--card-border);
     border-radius: 14px;
-    cursor: pointer;
     overflow: hidden;
-    background: var(--card-bg);
-    box-sizing: border-box;
-    display: flex; flex-direction: column;
-    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    transition: border-color .15s, box-shadow .2s, transform .15s;
+    position: relative;
   }
-  .shirt-card:hover {
-    border-color: #93c5fd;
+  .item-card:hover {
+    border-color: #94a3b8;
+    box-shadow: var(--shadow);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(37,99,235,0.1);
   }
-  .shirt-card.active {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
-  }
-  .shirt-card img {
-    width: 100%; flex: 1;
-    object-fit: contain; padding: 8px;
+
+  .item-card-img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
     background: #f8fafc;
+    overflow: hidden;
   }
-  .shirt-card span {
-    display: block; font-size: 10px;
-    text-align: center; padding: 5px 4px;
+  .item-card-img-wrap img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    padding: 10px;
+    display: block;
+  }
+
+  .item-card-footer {
+    padding: 8px 10px;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: #fff;
+  }
+  .item-card-name {
+    font-size: 11px;
     color: var(--muted);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    background: #fff; border-top: 1px solid var(--card-border);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    font-weight: 500;
   }
-  .no-shirts { color: var(--muted); font-size: 0.85rem; padding: 20px 0; }
+
+  /* ── Add to Cart button — compact pill ── */
+  .atc-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background .18s, transform .12s, box-shadow .18s;
+    white-space: nowrap;
+  }
+  .atc-btn:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(37,99,235,.3); }
+  .atc-btn:active { transform: scale(.96); }
+  .atc-btn.glasses-btn { background: var(--accent-g); }
+  .atc-btn.glasses-btn:hover { background: #6d28d9; box-shadow: 0 3px 10px rgba(124,58,237,.3); }
+  .atc-btn.success { background: #16a34a !important; }
+  .atc-btn svg { width: 11px; height: 11px; }
+
+  .no-items { color: var(--muted); font-size: 0.85rem; padding: 16px 0; }
+
+  /* ── Key hints ── */
+  .key-hints { max-width: 960px; margin: 10px auto 0; display: flex; gap: 8px; flex-wrap: wrap; }
+  .key-hint {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 100px; font-size: 0.76rem; font-weight: 500;
+    background: #f1f5f9; border: 1px solid var(--card-border); color: var(--muted);
+  }
+  .key-hint kbd {
+    background: #fff; border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 1px 6px; font-family: monospace; font-size: 0.72rem; color: var(--text);
+  }
+
+  /* ══════════════════════════════
+     PHOTO TRY-ON
+  ══════════════════════════════ */
+  .photo-tryon-wrap { max-width: 960px; margin: 0 auto; }
+
+  .upload-zone {
+    border: 2.5px dashed #cbd5e1;
+    border-radius: 22px;
+    background: #f8fafc;
+    padding: 52px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent-photo); background: #f0fdfa; }
+  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 54px; margin-bottom: 14px; display: block; }
+  .upload-title { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .upload-sub { font-size: 0.82rem; color: var(--muted); }
+  .upload-btn-label {
+    display: inline-block; margin-top: 18px;
+    background: var(--accent-photo); color: #fff;
+    padding: 11px 30px; border-radius: 12px; font-weight: 600; font-size: 0.9rem;
+    box-shadow: var(--shadow);
+  }
+
+  /* Photo editor */
+  .photo-editor { display: none; }
+  .photo-editor.visible { display: block; }
+
+  .photo-editor-grid {
+    display: grid;
+    grid-template-columns: 1fr 270px;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 720px) { .photo-editor-grid { grid-template-columns: 1fr; } }
+
+  .canvas-wrap {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #1e293b;
+    box-shadow: 0 0 0 1px var(--card-border), 0 20px 60px rgba(0,0,0,.15);
+    line-height: 0;
+  }
+  .canvas-wrap canvas { width: 100%; height: auto; display: block; }
+
+  .ai-loading-overlay {
+    position: absolute; inset: 0;
+    background: rgba(15,23,42,.65);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; color: #fff; font-size: 0.88rem; font-weight: 600;
+    border-radius: 18px; z-index: 10;
+  }
+  .ai-loading-overlay.hidden { display: none; }
+  .ai-spinner {
+    width: 40px; height: 40px;
+    border: 3px solid rgba(255,255,255,.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: ai-spin .75s linear infinite;
+  }
+  @keyframes ai-spin { to { transform: rotate(360deg); } }
+
+  /* Sidebar */
+  .photo-sidebar { display: flex; flex-direction: column; gap: 14px; }
+
+  .sidebar-section {
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .sidebar-section-head {
+    padding: 11px 14px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-section-head h4 {
+    font-size: 0.8rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.9px; color: var(--muted);
+  }
+
+  .sidebar-item-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    padding: 10px;
+  }
+
+  /* ── Sidebar item with Add to Cart ── */
+  .sidebar-item {
+    border: 1.5px solid var(--card-border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f8fafc;
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    transition: border-color .15s, box-shadow .15s;
+    position: relative;
+  }
+  .sidebar-item:hover { border-color: #94a3b8; box-shadow: 0 2px 12px rgba(0,0,0,.1); }
+  .sidebar-item.selected-shirt   { border-color: var(--accent);   box-shadow: 0 0 0 2px rgba(37,99,235,.25); }
+  .sidebar-item.selected-glasses { border-color: var(--accent-g); box-shadow: 0 0 0 2px rgba(124,58,237,.25); }
+
+  .sidebar-item-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    padding: 6px;
+    display: block;
+  }
+
+  /* Mini ATC at bottom of sidebar card */
+  .sidebar-atc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 6px 6px;
+  }
+  .sidebar-atc-btn {
+    width: 100%;
+    padding: 5px 4px;
+    background: #f1f5f9;
+    border: 1px solid var(--card-border);
+    border-radius: 7px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .sidebar-atc-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sidebar-atc-btn.g:hover { background: var(--accent-g); border-color: var(--accent-g); }
+  .sidebar-atc-btn.success { background: #16a34a !important; color: #fff !important; border-color: #16a34a !important; }
+
+  .sidebar-item-none {
+    border: 1.5px dashed var(--card-border);
+    border-radius: 10px;
+    background: #f8fafc;
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2px; aspect-ratio: 1;
+    transition: border-color .15s;
+    font-size: 10px; color: var(--muted);
+  }
+  .sidebar-item-none:hover { border-color: #94a3b8; }
+  .sidebar-item-none.selected-shirt   { border-color: var(--accent);   color: var(--accent); }
+  .sidebar-item-none.selected-glasses { border-color: var(--accent-g); color: var(--accent-g); }
+
+  /* Action buttons */
+  .action-btn {
+    width: 100%; padding: 11px; border: none; border-radius: 12px; cursor: pointer;
+    font-size: 0.88rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    transition: opacity .2s, transform .15s; box-shadow: var(--shadow);
+  }
+  .action-btn:hover { opacity: .86; transform: translateY(-1px); }
+  .btn-download { background: var(--accent-photo); color: #fff; }
+  .btn-reset    { background: #f1f5f9; color: var(--muted); border: 1.5px solid var(--card-border); box-shadow: none; }
+  .btn-change   { background: #fff; color: var(--text); border: 1.5px solid var(--card-border); box-shadow: none; }
+
+  .detect-warn {
+    display: none; margin-top: 10px;
+    background: #fef9c3; border: 1px solid #fde047; border-radius: 10px;
+    padding: 10px 14px; font-size: 0.81rem; color: #854d0e;
+  }
+  .detect-warn.visible { display: block; }
+
+  /* ── Toast ── */
+  .toast {
+    display: none; position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a; color: #fff;
+    padding: 13px 26px; border-radius: 12px;
+    font-size: 0.87rem; z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0,0,0,.28);
+    white-space: nowrap;
+  }
+  .toast.show { display: block; animation: fadeup .3s ease; }
+  @keyframes fadeup {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* ── Cart badge on nav (optional boost) ── */
+  .cart-pop {
+    display: inline-block;
+    animation: cartPop .35s cubic-bezier(.36,.07,.19,.97);
+  }
+  @keyframes cartPop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.4); }
+    70%  { transform: scale(.9); }
+    100% { transform: scale(1); }
+  }
 </style>
 
 <div class="tryon-page">
 
-  <div class="tryon-header">
-    <h1>👕 Virtual Try-On</h1>
-    <p>Select a shirt and start your camera</p>
+  <div class="mode-header">
+    <h1>✨ Virtual Try-On</h1>
+    <p>Try on shirts &amp; glasses — then add your favourites straight to cart</p>
   </div>
 
-  <div class="tryon-viewport">
-    <video id="videoEl" autoplay playsinline></video>
-    <canvas id="outputCanvas"></canvas>
-
-    <div class="cam-idle" id="camIdle">
-      <div class="cam-idle-icon">📷</div>
-      <p>Press <strong>Start Camera</strong> to begin</p>
+  <!-- ── Top mode selector ── -->
+  <div class="top-mode-selector">
+    <div class="top-mode-card" id="topModeWebcam" onclick="selectTopMode('webcam')">
+      <div class="top-mode-icon">📷</div>
+      <div class="top-mode-label">Live Try-On</div>
+      <div class="top-mode-sub">Real-time webcam try-on on your desktop</div>
     </div>
-
-    <button class="nav-btn" id="prevBtn">&#8249;</button>
-    <button class="nav-btn" id="nextBtn">&#8250;</button>
-
-    <canvas class="ring-canvas" id="ringLeft"  width="64" height="64"></canvas>
-    <canvas class="ring-canvas" id="ringRight" width="64" height="64"></canvas>
-  </div>
-
-  <div class="cam-controls">
-    <button class="ctrl-btn" id="startBtn">▶ Start Camera</button>
-    <button class="ctrl-btn" id="stopBtn">⏹ Stop Camera</button>
-  </div>
-
-  <div class="shirt-section">
-    <div class="shirt-section-header">
-      <h3>Shirts</h3>
-      <span class="shirt-count">{{ shirts|length }} available</span>
+    <div class="top-mode-card" id="topModePhoto" onclick="selectTopMode('photo')">
+      <div class="top-mode-icon">🖼️</div>
+      <div class="top-mode-label">Photo Try-On</div>
+      <div class="top-mode-sub">Upload a photo — AI fits items automatically</div>
     </div>
-    {% if shirts %}
-      <div class="shirt-grid">
-        {% for shirt in shirts %}
-        <div class="shirt-card" data-filename="{{ shirt.filename }}">
-          <img src="{{ shirt.thumb_url }}" alt="{{ shirt.name }}">
-          <span>{{ shirt.name }}</span>
-        </div>
-        {% endfor %}
+  </div>
+
+
+  <!-- ════════════════════════════════════
+       WEBCAM PANEL
+  ════════════════════════════════════ -->
+  <div class="top-panel" id="webcamTopPanel">
+
+    <div class="mode-selector">
+      <div class="mode-card" id="modeShirt" onclick="selectMode('shirt')">
+        <div class="mode-icon">👕</div>
+        <div class="mode-label">Try Shirts</div>
+        <div class="mode-sub">Hand-gesture controlled, real-time overlay</div>
       </div>
-    {% else %}
-      <p class="no-shirts">No shirts found. Add PNG files to <code>static/tryon/shirts/</code></p>
-    {% endif %}
-  </div>
+      <div class="mode-card" id="modeGlasses" onclick="selectMode('glasses')">
+        <div class="mode-icon">👓</div>
+        <div class="mode-label">Try Glasses</div>
+        <div class="mode-sub">Face-mesh tracking, press A/D to cycle</div>
+      </div>
+    </div>
 
-</div>
+    <!-- SHIRT PANEL -->
+    <div class="panel" id="shirtPanel">
+      <div class="tryon-viewport">
+        <div class="status-panel" id="shirtStatusPanel">
+          <div class="status-icon" id="shirtStatusIcon">🖥️</div>
+          <div class="status-title" id="shirtStatusTitle">Ready to launch</div>
+          <div class="status-sub" id="shirtStatusSub">
+            Click <strong>Launch App</strong> — your desktop try-on window opens automatically.
+            Use <strong>hand gestures</strong> to switch shirts.
+          </div>
+          <span class="status-badge" id="shirtStatusBadge">
+            <span class="dot"></span>
+            <span id="shirtBadgeText">Not running</span>
+          </span>
+        </div>
+      </div>
+      <div class="cam-controls">
+        <button class="ctrl-btn btn-shirt-start" id="shirtStartBtn">🚀 Launch App</button>
+        <button class="ctrl-btn btn-shirt-stop"  id="shirtStopBtn" disabled>⏹ Stop App</button>
+      </div>
 
-<canvas id="captureCanvas" style="display:none;"></canvas>
+      <!-- Shirt grid -->
+      <div class="item-section">
+        <div class="item-section-header">
+          <h3>Available Shirts</h3>
+          <span class="item-count">{{ shirts|length }} item{{ shirts|length|pluralize }}</span>
+        </div>
+        {% if shirts %}
+          <div class="item-grid">
+            {% for shirt in shirts %}
+            <div class="item-card">
+              <div class="item-card-img-wrap">
+                <img src="{{ shirt.thumb_url }}" alt="{{ shirt.name }}">
+              </div>
+              <div class="item-card-footer">
+                <span class="item-card-name" title="{{ shirt.name }}">{{ shirt.name }}</span>
+                <button
+                  class="atc-btn"
+                  onclick="addTryonItemToCart(event, '{{ shirt.filename }}', this)"
+                  title="Add {{ shirt.name }} to cart"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                  </svg>
+                  Add
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="no-items">No shirts found. Add PNG files to <code>static/tryon/shirts/</code></p>
+        {% endif %}
+      </div>
+    </div><!-- /shirtPanel -->
+
+    <!-- GLASSES PANEL -->
+    <div class="panel" id="glassesPanel">
+      <div class="tryon-viewport">
+        <div class="status-panel" id="glassesStatusPanel">
+          <div class="status-icon" id="glassesStatusIcon">🖥️</div>
+          <div class="status-title" id="glassesStatusTitle">Ready to launch</div>
+          <div class="status-sub" id="glassesStatusSub">
+            Click <strong>Launch App</strong> — webcam window opens on your desktop.
+            Press <strong>A / D</strong> to switch styles.
+          </div>
+          <span class="status-badge" id="glassesStatusBadge">
+            <span class="dot"></span>
+            <span id="glassesBadgeText">Not running</span>
+          </span>
+        </div>
+      </div>
+      <div class="cam-controls">
+        <button class="ctrl-btn btn-glasses-start" id="glassesStartBtn">🚀 Launch App</button>
+        <button class="ctrl-btn btn-glasses-stop"  id="glassesStopBtn" disabled>⏹ Stop App</button>
+      </div>
+      <div class="key-hints">
+        <span class="key-hint"><kbd>A</kbd> Previous style</span>
+        <span class="key-hint"><kbd>D</kbd> Next style</span>
+        <span class="key-hint"><kbd>Q</kbd> Quit window</span>
+      </div>
+
+      <!-- Glasses grid -->
+      <div class="item-section">
+        <div class="item-section-header">
+          <h3>Available Glasses</h3>
+          <span class="item-count">{{ glasses|length }} item{{ glasses|length|pluralize }}</span>
+        </div>
+        {% if glasses %}
+          <div class="item-grid">
+            {% for g in glasses %}
+            <div class="item-card">
+              <div class="item-card-img-wrap">
+                <img src="{{ g.thumb_url }}" alt="{{ g.name }}">
+              </div>
+              <div class="item-card-footer">
+                <span class="item-card-name" title="{{ g.name }}">{{ g.name }}</span>
+                <button
+                  class="atc-btn glasses-btn"
+                  onclick="addTryonItemToCart(event, '{{ g.filename }}', this)"
+                  title="Add {{ g.name }} to cart"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                  </svg>
+                  Add
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="no-items">No glasses found. Add PNG files to <code>static/tryon/glasses/</code></p>
+        {% endif %}
+      </div>
+    </div><!-- /glassesPanel -->
+
+  </div><!-- /webcamTopPanel -->
+
+
+  <!-- ════════════════════════════════════
+       PHOTO TRY-ON PANEL
+  ════════════════════════════════════ -->
+  <div class="top-panel" id="photoTopPanel">
+    <div class="photo-tryon-wrap">
+
+      <!-- Upload Zone -->
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="photoFileInput" accept="image/*">
+        <span class="upload-icon">📸</span>
+        <div class="upload-title">Upload your photo</div>
+        <div class="upload-sub">JPG, PNG, WEBP supported &bull; Your photo stays in your browser</div>
+        <span class="upload-btn-label">Choose Photo</span>
+      </div>
+
+      <!-- Photo Editor -->
+      <div class="photo-editor" id="photoEditor">
+        <div class="photo-editor-grid">
+
+          <!-- Left: canvas -->
+          <div>
+            <div class="canvas-wrap" id="canvasWrap">
+              <canvas id="tryonCanvas"></canvas>
+              <div id="aiOverlay" class="ai-loading-overlay hidden">
+                <div class="ai-spinner"></div>
+                <div>Detecting face &amp; body…</div>
+              </div>
+            </div>
+
+            <div class="detect-warn" id="detectWarn"></div>
+
+            <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="action-btn btn-download" style="flex:1;" onclick="downloadPhoto()">⬇ Download</button>
+              <button class="action-btn btn-change"   style="flex:1;" onclick="changePhoto()">🔄 New Photo</button>
+              <button class="action-btn btn-reset"    style="flex:1;" onclick="resetOverlays()">✕ Clear</button>
+            </div>
+          </div>
+
+          <!-- Right: sidebar -->
+          <div class="photo-sidebar">
+
+            <!-- ── Shirts sidebar ── -->
+            <div class="sidebar-section">
+              <div class="sidebar-section-head">
+                <h4>👕 Shirts</h4>
+                {% if state.shirtUrl %}<span style="font-size:10px;color:var(--accent);font-weight:600;">Selected</span>{% endif %}
+              </div>
+              <div class="sidebar-item-grid">
+                <!-- None option -->
+                <div class="sidebar-item-none selected-shirt" id="shirtNone"
+                     onclick="selectPhotoItem('shirt', null, this)">
+                  <span style="font-size:18px">✕</span>
+                  <span>None</span>
+                </div>
+                {% for shirt in shirts %}
+                <div class="sidebar-item"
+                     onclick="selectPhotoItem('shirt', '{{ shirt.thumb_url }}', this)">
+                  <img class="sidebar-item-img" src="{{ shirt.thumb_url }}" alt="{{ shirt.name }}">
+                  <!-- Mini Add to Cart -->
+                  <div class="sidebar-atc">
+                    <button
+                      class="sidebar-atc-btn"
+                      onclick="addTryonItemToCart(event, '{{ shirt.filename }}', this)"
+                      title="Add to cart"
+                    >
+                      🛒 Cart
+                    </button>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- ── Glasses sidebar ── -->
+            <div class="sidebar-section">
+              <div class="sidebar-section-head">
+                <h4>👓 Glasses</h4>
+              </div>
+              <div class="sidebar-item-grid">
+                <div class="sidebar-item-none selected-glasses" id="glassesNone"
+                     onclick="selectPhotoItem('glasses', null, this)">
+                  <span style="font-size:18px">✕</span>
+                  <span>None</span>
+                </div>
+                {% for g in glasses %}
+                <div class="sidebar-item"
+                     onclick="selectPhotoItem('glasses', '{{ g.thumb_url }}', this)">
+                  <img class="sidebar-item-img" src="{{ g.thumb_url }}" alt="{{ g.name }}">
+                  <div class="sidebar-atc">
+                    <button
+                      class="sidebar-atc-btn g"
+                      onclick="addTryonItemToCart(event, '{{ g.filename }}', this)"
+                      title="Add to cart"
+                    >
+                      🛒 Cart
+                    </button>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+          </div><!-- /photo-sidebar -->
+        </div>
+      </div><!-- /photoEditor -->
+
+    </div>
+  </div><!-- /photoTopPanel -->
+
+</div><!-- /tryon-page -->
+
+<div class="toast" id="toast"></div>
 
 <script>
+/* ══════════════════════════════════════════════════════════════
+   TOP-LEVEL MODE
+══════════════════════════════════════════════════════════════ */
+function selectTopMode(mode) {
+  document.getElementById('topModeWebcam').classList.toggle('active-webcam', mode === 'webcam');
+  document.getElementById('topModePhoto').classList.toggle('active-photo',   mode === 'photo');
+  document.getElementById('webcamTopPanel').classList.toggle('visible', mode === 'webcam');
+  document.getElementById('photoTopPanel').classList.toggle('visible',  mode === 'photo');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WEBCAM SUB-MODE
+══════════════════════════════════════════════════════════════ */
+function selectMode(mode) {
+  document.getElementById('modeShirt').classList.toggle('active-shirt',    mode === 'shirt');
+  document.getElementById('modeGlasses').classList.toggle('active-glasses', mode === 'glasses');
+  document.getElementById('shirtPanel').classList.toggle('visible',   mode === 'shirt');
+  document.getElementById('glassesPanel').classList.toggle('visible', mode === 'glasses');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════════════ */
+var _toastTimer = null;
+function showToast(msg, ms) {
+  ms = ms || 3000;
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function () { t.classList.remove('show'); }, ms);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ADD TO CART  ← THE KEY FUNCTION
+══════════════════════════════════════════════════════════════
+
+   Called from every "Add" / "🛒 Cart" button.
+   - event     : click event (we stopPropagation so it doesn't
+                 also trigger selectPhotoItem)
+   - filename  : e.g.  "blue_oxford_shirt.png"
+                 Django will strip the extension, convert to
+                 display name, and look up the Product.
+   - btnEl     : the button DOM node (for visual feedback)
+*/
+function addTryonItemToCart(event, filename, btnEl) {
+  event.stopPropagation();   // don't also fire item-select
+
+  var original = btnEl.innerHTML;
+  btnEl.disabled = true;
+  btnEl.innerHTML = '…';
+
+  fetch("{% url 'add_tryon_item_to_cart' %}", {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ filename: filename }),
+  })
+  .then(function (r) { return r.json(); })
+  .then(function (data) {
+    if (data.success) {
+      /* ── Success feedback ── */
+      btnEl.classList.add('success');
+      btnEl.innerHTML = '✓ Added';
+      showToast('🛒 ' + data.product + ' added to cart!');
+
+      /* Reset button after 2 s */
+      setTimeout(function () {
+        btnEl.classList.remove('success');
+        btnEl.innerHTML = original;
+        btnEl.disabled  = false;
+      }, 2000);
+
+    } else {
+      btnEl.innerHTML = original;
+      btnEl.disabled  = false;
+
+      if (data.redirect_login) {
+        showToast('🔒 Please log in to add items to your cart.', 4000);
+      } else {
+        showToast('❌ ' + (data.error || 'Could not add to cart.'), 4500);
+      }
+    }
+  })
+  .catch(function () {
+    btnEl.innerHTML = original;
+    btnEl.disabled  = false;
+    showToast('❌ Network error. Is the server running?', 4500);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WEBCAM CONTROLLER
+══════════════════════════════════════════════════════════════ */
 (function () {
-  const video         = document.getElementById('videoEl');
-  const outputCanvas  = document.getElementById('outputCanvas');
-  const captureCanvas = document.getElementById('captureCanvas');
-  const ringLeft      = document.getElementById('ringLeft');
-  const ringRight     = document.getElementById('ringRight');
-  const startBtn      = document.getElementById('startBtn');
-  const stopBtn       = document.getElementById('stopBtn');
-  const prevBtn       = document.getElementById('prevBtn');
-  const nextBtn       = document.getElementById('nextBtn');
-  const camIdle       = document.getElementById('camIdle');
-  const shirtCards    = document.querySelectorAll('.shirt-card');
+  var $ = function (id) { return document.getElementById(id); };
 
-  const outCtx   = outputCanvas.getContext('2d');
-  const capCtx   = captureCanvas.getContext('2d');
-  const ringLCtx = ringLeft.getContext('2d');
-  const ringRCtx = ringRight.getContext('2d');
+  function makeController(cfg) {
+    var pollTimer = null;
 
-  let stream        = null;
-  let running       = false;
-  let processing    = false;
-  let lastFrameTime = 0;
-  const TARGET_FPS  = 15;
-  const FRAME_MS    = 1000 / TARGET_FPS;
-
-  let shirtOverlay = null;
-  let shirtList    = [];
-  let imageNumber  = 0;
-  let counterLeft  = 0;
-  let counterRight = 0;
-  const SELECTION_SPEED = 20;
-  const TOTAL_DEGREES   = 180;
-
-  shirtCards.forEach(c => shirtList.push(c.dataset.filename));
-
-  function selectShirt(index) {
-    imageNumber = ((index % shirtList.length) + shirtList.length) % shirtList.length;
-    shirtCards.forEach((c, i) => c.classList.toggle('active', i === imageNumber));
-    shirtOverlay = null;
-    shirtCards[imageNumber]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  shirtCards.forEach((card, i) => card.addEventListener('click', () => selectShirt(i)));
-  if (shirtCards.length > 0) selectShirt(0);
-  prevBtn.addEventListener('click', () => selectShirt(imageNumber - 1));
-  nextBtn.addEventListener('click', () => selectShirt(imageNumber + 1));
-
-  function showStart() {
-    startBtn.style.visibility = '';
-    stopBtn.style.visibility  = 'hidden';
-  }
-  function showStop() {
-    startBtn.style.visibility = 'hidden';
-    stopBtn.style.visibility  = '';
-  }
-  showStart();
-
-  startBtn.addEventListener('click', async () => {
-    if (!shirtList.length) return;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-      video.srcObject = stream;
-      await video.play();
-      video.addEventListener('loadedmetadata', () => {
-        outputCanvas.width   = video.videoWidth;
-        outputCanvas.height  = video.videoHeight;
-        captureCanvas.width  = video.videoWidth;
-        captureCanvas.height = video.videoHeight;
-      }, { once: true });
-      running = true;
-      shirtOverlay = null;
-      camIdle.classList.add('hidden');
-      showStop();
-      requestAnimationFrame(loop);
-    } catch (err) {
-      console.error('Camera error:', err.message);
-    }
-  });
-
-  stopBtn.addEventListener('click', () => {
-    running = false;
-    shirtOverlay = null;
-    counterLeft = counterRight = 0;
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    stream = null;
-    outCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-    ringLeft.style.display  = 'none';
-    ringRight.style.display = 'none';
-    camIdle.classList.remove('hidden');
-    showStart();
-  });
-
-  function drawRing(ctx, canvas, counter) {
-    const pct = Math.min((counter * SELECTION_SPEED) / TOTAL_DEGREES, 1);
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-    ctx.beginPath();
-    ctx.arc(W/2, H/2, 24, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-    ctx.lineWidth = 6; ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(W/2, H/2, 24, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * pct);
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.stroke();
-  }
-
-  function loop(timestamp) {
-    if (!running) return;
-    if (video.readyState >= 2) {
-      outCtx.save();
-      outCtx.scale(-1, 1);
-      outCtx.drawImage(video, -outputCanvas.width, 0, outputCanvas.width, outputCanvas.height);
-      outCtx.restore();
-
-      if (shirtOverlay) {
-        outCtx.drawImage(
-          shirtOverlay.img,
-          shirtOverlay.x,
-          shirtOverlay.y,
-          shirtOverlay.nativeW,
-          shirtOverlay.nativeH
-        );
+    function setRunning(yes) {
+      var panel = $(cfg.panelId);
+      if (yes) {
+        panel.classList.add('running');
+        $(cfg.iconId).textContent      = '✅';
+        $(cfg.titleId).textContent     = cfg.runningTitle;
+        $(cfg.subId).innerHTML         = cfg.runningSub;
+        $(cfg.badgeId).classList.add('running');
+        $(cfg.badgeTextId).textContent = 'Running';
+        $(cfg.startBtnId).disabled     = true;
+        $(cfg.stopBtnId).disabled      = false;
+      } else {
+        panel.classList.remove('running');
+        $(cfg.iconId).textContent      = cfg.defaultIcon;
+        $(cfg.titleId).textContent     = cfg.defaultTitle;
+        $(cfg.subId).innerHTML         = cfg.defaultSub;
+        $(cfg.badgeId).classList.remove('running');
+        $(cfg.badgeTextId).textContent = 'Not running';
+        $(cfg.startBtnId).disabled     = false;
+        $(cfg.stopBtnId).disabled      = true;
+        stopPolling();
       }
     }
-    if (!processing && shirtList.length && (timestamp - lastFrameTime) >= FRAME_MS) {
-      lastFrameTime = timestamp;
-      processing    = true;
-      sendFrame().catch(e => console.warn(e)).finally(() => { processing = false; });
+
+    function startPolling() {
+      stopPolling();
+      pollTimer = setInterval(function () {
+        fetch(cfg.statusUrl)
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (!d.running) { setRunning(false); showToast('Desktop app closed.'); }
+          })
+          .catch(function () {});
+      }, 2000);
     }
-    requestAnimationFrame(loop);
-  }
 
-  async function sendFrame() {
-    if (video.readyState < 2) return;
-    capCtx.save();
-    capCtx.scale(-1, 1);
-    capCtx.drawImage(video, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
-    capCtx.restore();
+    function stopPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
 
-    const frameB64 = captureCanvas.toDataURL('image/jpeg', 0.92);
-
-    const resp = await fetch("{% url 'tryon_process_frame' %}", {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ frame: frameB64, shirt: shirtList[imageNumber] }),
+    $(cfg.startBtnId).addEventListener('click', function () {
+      $(cfg.startBtnId).disabled    = true;
+      $(cfg.startBtnId).textContent = '⏳ Launching…';
+      fetch(cfg.launchUrl, { method: 'POST' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.success) {
+            setRunning(true); startPolling();
+            showToast('✅ Desktop app launched! Check your taskbar.');
+          } else {
+            $(cfg.startBtnId).disabled    = false;
+            $(cfg.startBtnId).textContent = '🚀 Launch App';
+            showToast('❌ ' + (data.error || 'Could not launch app.'), 5000);
+          }
+        })
+        .catch(function () {
+          $(cfg.startBtnId).disabled    = false;
+          $(cfg.startBtnId).textContent = '🚀 Launch App';
+          showToast('❌ Network error.', 5000);
+        });
     });
-    if (!resp.ok) return;
-    const data = await resp.json();
-    if (!data.success) return;
 
-    if (data.pose_detected && data.overlay) {
-      const o   = data.overlay;
-      const img = new Image();
-      // ✅ Store native dimensions for crisp rendering
-      img.onload = () => {
-        shirtOverlay = {
-          img,
-          x:       o.x,
-          y:       o.y,
-          width:   o.width,
-          height:  o.height,
-          nativeW: img.naturalWidth,   // actual PNG pixel width
-          nativeH: img.naturalHeight,  // actual PNG pixel height
-        };
-      };
-      img.src = 'data:image/png;base64,' + o.img;
-    } else {
-      shirtOverlay = null;
-    }
+    $(cfg.stopBtnId).addEventListener('click', function () {
+      $(cfg.stopBtnId).disabled = true;
+      fetch(cfg.stopUrl, { method: 'POST' }).catch(function () {});
+      setRunning(false);
+      showToast('Desktop app stopped.');
+    });
 
-    const gesture = data.gesture || 'none';
-    ringLeft.style.display  = 'none';
-    ringRight.style.display = 'none';
-
-    if (gesture === 'both') {
-      counterLeft = counterRight = 0;
-    } else if (gesture === 'left') {
-      counterLeft++;
-      ringRight.style.display = 'block';
-      drawRing(ringRCtx, ringRight, counterLeft);
-      if (counterLeft * SELECTION_SPEED >= TOTAL_DEGREES) {
-        counterLeft = 0; selectShirt(imageNumber + 1);
-      }
-    } else if (gesture === 'right') {
-      counterRight++;
-      ringLeft.style.display = 'block';
-      drawRing(ringLCtx, ringLeft, counterRight);
-      if (counterRight * SELECTION_SPEED >= TOTAL_DEGREES) {
-        counterRight = 0; selectShirt(imageNumber - 1);
-      }
-    } else {
-      counterLeft = counterRight = 0;
-    }
+    /* Check on page load */
+    fetch(cfg.statusUrl)
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d.running) { setRunning(true); startPolling(); } else { setRunning(false); } })
+      .catch(function () { setRunning(false); });
   }
+
+  makeController({
+    panelId: 'shirtStatusPanel', iconId: 'shirtStatusIcon',
+    titleId: 'shirtStatusTitle', subId: 'shirtStatusSub',
+    badgeId: 'shirtStatusBadge', badgeTextId: 'shirtBadgeText',
+    startBtnId: 'shirtStartBtn', stopBtnId: 'shirtStopBtn',
+    launchUrl: "{% url 'launch_tryon_app' %}",
+    stopUrl:   "{% url 'stop_tryon_app' %}",
+    statusUrl: "{% url 'tryon_status' %}",
+    defaultIcon: '🖥️', defaultTitle: 'Ready to launch',
+    defaultSub: 'Click <strong>Launch App</strong> — your desktop try-on window opens automatically. Use <strong>hand gestures</strong> to switch shirts.',
+    runningTitle: 'Desktop app is running',
+    runningSub: 'Shirt try-on is live. Use <strong>hand gestures</strong> to switch. Press <strong>Q</strong> to quit.',
+  });
+
+  makeController({
+    panelId: 'glassesStatusPanel', iconId: 'glassesStatusIcon',
+    titleId: 'glassesStatusTitle', subId: 'glassesStatusSub',
+    badgeId: 'glassesStatusBadge', badgeTextId: 'glassesBadgeText',
+    startBtnId: 'glassesStartBtn', stopBtnId: 'glassesStopBtn',
+    launchUrl: "{% url 'launch_glasses_app' %}",
+    stopUrl:   "{% url 'stop_glasses_app' %}",
+    statusUrl: "{% url 'glasses_status' %}",
+    defaultIcon: '🖥️', defaultTitle: 'Ready to launch',
+    defaultSub: 'Click <strong>Launch App</strong> — webcam window opens on your desktop. Press <strong>A / D</strong> to switch styles.',
+    runningTitle: 'Glasses app is running',
+    runningSub: 'Glasses try-on is live. Press <strong>A</strong> / <strong>D</strong> to cycle styles, <strong>Q</strong> to quit.',
+  });
+})();
+
+
+/* ══════════════════════════════════════════════════════════════
+   PHOTO TRY-ON ENGINE
+══════════════════════════════════════════════════════════════ */
+(function () {
+  var canvas     = document.getElementById('tryonCanvas');
+  var ctx        = canvas.getContext('2d');
+  var uploadZone = document.getElementById('uploadZone');
+  var fileInput  = document.getElementById('photoFileInput');
+  var editor     = document.getElementById('photoEditor');
+  var aiOverlay  = document.getElementById('aiOverlay');
+  var detectWarn = document.getElementById('detectWarn');
+
+  var state = { rawDataUrl: null, shirtUrl: null, glassesUrl: null };
+
+  fileInput.addEventListener('change', function (e) {
+    if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+  });
+  uploadZone.addEventListener('dragover', function (e) {
+    e.preventDefault(); uploadZone.classList.add('drag-over');
+  });
+  uploadZone.addEventListener('dragleave', function () {
+    uploadZone.classList.remove('drag-over');
+  });
+  uploadZone.addEventListener('drop', function (e) {
+    e.preventDefault(); uploadZone.classList.remove('drag-over');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+
+  function loadFile(file) {
+    if (!file.type.startsWith('image/')) { showToast('Please upload an image file.'); return; }
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      state.rawDataUrl = ev.target.result;
+      var img = new Image();
+      img.onload = function () {
+        canvas.width  = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0);
+        uploadZone.style.display = 'none';
+        editor.classList.add('visible');
+        detectWarn.classList.remove('visible');
+      };
+      img.src = state.rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  window.selectPhotoItem = function (type, url, el) {
+    var cls = type === 'shirt' ? 'selected-shirt' : 'selected-glasses';
+    document.querySelectorAll('.' + cls).forEach(function (n) { n.classList.remove(cls); });
+    el.classList.add(cls);
+    if (type === 'shirt')   state.shirtUrl   = url;
+    if (type === 'glasses') state.glassesUrl = url;
+    runTryon();
+  };
+
+  function runTryon() {
+    if (!state.rawDataUrl) return;
+    if (!state.shirtUrl && !state.glassesUrl) {
+      drawImage(state.rawDataUrl);
+      detectWarn.classList.remove('visible');
+      return;
+    }
+    aiOverlay.classList.remove('hidden');
+    detectWarn.classList.remove('visible');
+
+    fetch("{% url 'photo_tryon' %}", {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image:   state.rawDataUrl,
+        shirt:   state.shirtUrl   || null,
+        glasses: state.glassesUrl || null,
+      }),
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      aiOverlay.classList.add('hidden');
+      if (data.success) {
+        drawImage(data.image);
+        if (data.warn) {
+          detectWarn.textContent = '⚠️ ' + data.warn;
+          detectWarn.classList.add('visible');
+        }
+      } else {
+        showToast('❌ ' + (data.error || 'Processing failed.'), 5000);
+      }
+    })
+    .catch(function () {
+      aiOverlay.classList.add('hidden');
+      showToast('❌ Network error reaching server.', 5000);
+    });
+  }
+
+  function drawImage(dataUrl) {
+    var img = new Image();
+    img.onload = function () {
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+    };
+    img.src = dataUrl;
+  }
+
+  window.downloadPhoto = function () {
+    if (!state.rawDataUrl) { showToast('No photo loaded.'); return; }
+    var link = document.createElement('a');
+    link.download = 'smartfinds_tryon.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('📥 Photo downloaded!');
+  };
+
+  window.changePhoto = function () {
+    state.rawDataUrl = state.shirtUrl = state.glassesUrl = null;
+    editor.classList.remove('visible');
+    uploadZone.style.display = '';
+    fileInput.value = '';
+    detectWarn.classList.remove('visible');
+    document.getElementById('shirtNone').classList.add('selected-shirt');
+    document.getElementById('glassesNone').classList.add('selected-glasses');
+  };
+
+  window.resetOverlays = function () {
+    state.shirtUrl = state.glassesUrl = null;
+    document.getElementById('shirtNone').classList.add('selected-shirt');
+    document.getElementById('glassesNone').classList.add('selected-glasses');
+    detectWarn.classList.remove('visible');
+    if (state.rawDataUrl) drawImage(state.rawDataUrl);
+    showToast('Overlays cleared.');
+  };
 })();
 </script>
 {% endblock %}

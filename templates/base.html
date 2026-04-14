@@ -6,9 +6,7 @@
 <meta http-equiv="pragma" content="no-cache" />
 <meta http-equiv="cache-control" content="max-age=604800" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-<title>GreatKart | One of the Biggest Online Shopping Platform</title>
-
+<title>Smart Finds | One of the Biggest Online Shopping Platform</title>
 <link href="{% static 'images/favicon.ico' %}" rel="shortcut icon" type="image/x-icon">
 
 <!-- jQuery -->
@@ -16,43 +14,96 @@
 
 <!-- Bootstrap4 files-->
 <script src="{% static 'js/bootstrap.bundle.min.js' %}" type="text/javascript"></script>
-<link href=" {% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css"/>
+<link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css"/>
 
 <!-- Font awesome 5 -->
-<link href="{% static 'fonts/fontawesome/css/all.min.css' %}" type="text/css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <!-- custom style -->
 <link href="{% static 'css/ui.css' %}" rel="stylesheet" type="text/css"/>
 <link href="{% static 'css/responsive.css' %}" rel="stylesheet" media="only screen and (max-width: 1200px)" />
+<link href="{% static 'css/custom.css' %}" rel="stylesheet" type="text/css"/>
 
 <!-- custom javascript -->
 <script src="{% static 'js/script.js' %}" type="text/javascript"></script>
-<!-- paypal script -->
-<script src="https://www.paypal.com/sdk/js?client-id=ARR4u1L3aCyFQXR_lhXsHyBmv7vlV0at5KyVDYd0mSNnXG7DGGKXFBq7JFSNqi-i1SJmoyL9PM3K2C7u&currency=USD"></script>
 
-<script type="{% static 'text/javascript' %}">
-/// some script
-
-// jquery ready start
-$(document).ready(function() {
-	// jQuery code
-
-});
-// jquery end
-</script>
-
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
 <!-- navbar -->
-{%  include 'includes/navbar.html'%}
+{% include 'includes/navbar.html' %}
 
-
-  {% block content %}
+{% block content %}
 <!-- content -->
-  {% endblock %}
+{% endblock %}
 
+<!-- footer -->
+{% include 'includes/footer.html' %}
 
+<!-- jQuery ready + SweetAlert scripts -->
+<script type="text/javascript">
+$(document).ready(function() {
+    // jQuery code
+});
 
-  <!-- footer -->
-{%  include 'includes/footer.html'%}
+function confirmDelete(url) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: "Deleted!",
+                text: "Your item has been deleted.",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false,
+            }).then(() => {
+                window.location.href = url;
+            });
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('form[action*="add_cart"]').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    Swal.fire({
+                        title: "Added to Cart!",
+                        icon: "success",
+                        draggable: true,
+                        timer: 2000,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        location.reload();
+                    });
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+
+</body>
+</html>

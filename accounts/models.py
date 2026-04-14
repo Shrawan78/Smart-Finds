@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 # Create your models here.
 class MyAccountManager(BaseUserManager):
-    def create_user(self, first_name, last_name, username, email, password=None):
+    def create_user(self, first_name, last_name, username, email, phone_number, password=None):
         if not email:
             raise ValueError("User must have an email address")
         if not username:
@@ -14,6 +14,7 @@ class MyAccountManager(BaseUserManager):
             username = username,
             first_name = first_name,
             last_name = last_name,
+            phone_number=phone_number,
         )
 
         user.set_password(password)
@@ -37,6 +38,7 @@ class MyAccountManager(BaseUserManager):
         return user
 
 class Account(AbstractBaseUser):
+    client_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50, unique = True)
@@ -57,6 +59,17 @@ class Account(AbstractBaseUser):
 
     objects = MyAccountManager()
 
+
+    def save(self, *args, **kwargs):
+        if not self.client_id:               #  check if client_id is empty
+            super().save(*args, **kwargs)    # save user first to get pk
+            self.client_id = f'CUST-{self.pk:05d}'  # generate client_id
+        super().save(*args, **kwargs)        #  save again with client_id
+
+
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
+
     def __str__(self):
         return self.email
 
@@ -66,3 +79,19 @@ class Account(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(Account, on_delete=models.CASCADE)
+    address_line_1 = models.CharField(blank=True, max_length=100)
+    address_line_2 = models.CharField(blank=True, max_length=100)
+    profile_picture = models.ImageField(blank=True, upload_to='userProfile')
+    city = models.CharField(blank=True, max_length=20)
+    state = models.CharField(blank=True, max_length=20)
+    country = models.CharField(blank=True, max_length=20)
+
+    def __str__(self):
+        return self.user.first_name
+
+    def full_address(self):
+        return f'{self.address_line_1} {self.address_line_2}'

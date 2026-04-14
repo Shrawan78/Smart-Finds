@@ -1,6 +1,179 @@
 {% extends 'base.html' %}
-
 {% block content %}
+<div class="container mt-5">
+    <h2>Find Similar Products</h2>
+    <p>Upload an image to find visually similar items</p>
 
+    <!-- Upload Form -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <input type="file" name="image" accept="image/*" class="form-control" id="imageInput" required>
+        </div>
 
+        <!-- Preview uploaded image -->
+        <div id="previewContainer" style="display:none; margin-bottom:15px;">
+            <p><strong>Your uploaded image:</strong></p>
+            <img id="imagePreview" src="" alt="Preview"
+                 style="height:200px; width:200px; object-fit:cover; border-radius:8px; border:2px solid #ddd;">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Find Similar</button>
+        <br>
+    </form>
+
+    <!-- Store Results -->
+    {% if store_results %}
+    <h4 class="mt-5">Matching Products From Our Store:</h4>
+    <div class="row mt-3">
+        {% for item in store_results %}
+        <div class="col-md-3 col-6 mb-4">
+            <div class="card h-100 shadow-sm" style="cursor:pointer; border-radius:10px; overflow:hidden;">
+                <img src="{{ item.img_url }}" class="card-img-top"
+                     style="height:200px; object-fit:contain; background:#f8f8f8; padding:8px;">
+                <div class="card-body text-center p-2">
+                    <p class="mb-1 fw-bold">{{ item.name }}</p>
+                    {% if item.price %}
+                        <p class="mb-2 text-success fw-bold">NPR {{ item.price }}</p>
+                    {% else %}
+                        <p class="mb-2 text-muted">Price unavailable</p>
+                    {% endif %}
+                    <button
+                        class="btn btn-primary btn-sm w-100 add-to-cart-btn"
+                        data-img-url="{{ item.img_url }}">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Warehouse Results -->
+    {% if results %}
+    <h4 class="mt-5">Similar Products Found in our warehouses:</h4>
+    <div class="row mt-3">
+        {% for img_url in results %}
+        <div class="col-md-2 col-4 mb-4">
+            <div class="card h-100 shadow-sm" style="cursor:pointer; border-radius:10px; overflow:hidden;">
+                <img src="{{ img_url }}" class="card-img-top"
+                     style="height:200px; object-fit:cover;">
+                <div class="card-body text-center p-2">
+                    <button class="btn btn-success btn-sm w-100 request-product-btn">
+                        Request this product
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    // Image preview
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('previewContainer').style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Add to cart from store results
+    document.querySelectorAll('.add-to-cart-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const imgUrl = this.getAttribute('data-img-url');
+            const filename = imgUrl.split('/').pop();
+
+            const originalText = this.innerText;
+            this.disabled = true;
+            this.innerText = 'Adding...';
+
+            const self = this;
+
+            fetch('/store/add-search-result-to-cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ filename: filename })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    self.innerText = '✓ Added!';
+                    self.classList.replace('btn-primary', 'btn-success');
+                    Swal.fire({
+                        title: 'Added to Cart!',
+                        text: data.product + ' has been added to your cart.',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#3085d6',
+                    });
+                } else if (data.redirect_login) {
+                    Swal.fire({
+                        title: 'Please Login',
+                        text: 'You need to be logged in to add items to your cart.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Login',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#3085d6',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/login/';
+                        }
+                    });
+                    self.disabled = false;
+                    self.innerText = originalText;
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.error,
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                    });
+                    self.disabled = false;
+                    self.innerText = originalText;
+                }
+            })
+            .catch(() => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Something went wrong. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                });
+                self.disabled = false;
+                self.innerText = originalText;
+            });
+        });
+    });
+
+    // Request product button
+    document.querySelectorAll('.request-product-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const self = this;
+            Swal.fire({
+                title: 'Request Received!',
+                text: 'This product will be available in our store within 3 days.',
+                icon: 'info',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#3085d6',
+            }).then(() => {
+                self.disabled = true;
+                self.innerText = '✓ Requested';
+                self.classList.replace('btn-success', 'btn-secondary');
+            });
+        });
+    });
+</script>
 {% endblock %}

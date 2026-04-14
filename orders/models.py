@@ -9,6 +9,7 @@ class Payment(models.Model):
     amount_paid = models.CharField(max_length=100) #This is the total amount paid
     status = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
+    amount_paid_usd = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return self.payment_id
@@ -67,3 +68,21 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return self.product.product_name
+
+
+class Refund(models.Model):
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    )
+    order      = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='refund')
+    user       = models.ForeignKey(Account, on_delete=models.CASCADE)
+    reason     = models.TextField()
+    status     = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    refund_id  = models.CharField(max_length=100, blank=True)  # ID returned by Stripe/PayPal
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Refund for Order {self.order.order_number} - {self.status}"

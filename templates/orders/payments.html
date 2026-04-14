@@ -6,193 +6,287 @@
 <section class="section-content padding-y bg">
 <div class="container">
 
-<!-- ============================ COMPONENT 1 ================================= -->
 <h4 class="text-center mb-10">Review Your Order and Make Payment</h4>
 <div class="row">
-	<aside class="col-lg-8">
-    <div class="card">
-      <h5 class="card-header">Billing Address</h5>
-      <div class="card-body">
-        <p class="card-text mb-0">{{order.full_name}}</p>
-        <p class="card-text mb-0">{{order.full_address}}</p>
-        <p class="card-text mb-0">{{order.city}}, {{order.state}}</p>
-        <p class="card-text mb-0">{{order.country}}</p>
-        <p class="card-text mb-0">{{order.email}}</p>
-        <p class="card-text mb-0">{{order.phone}}</p>
-        {% if order.order_note %}
-        <b>Order Note: </b> {{order.order_note}}
-        {% else %}
-        {% endif %}
-      </div>
-    </div>
+    <aside class="col-lg-8">
+        <div class="card">
+            <h5 class="card-header">Billing Address</h5>
+            <div class="card-body">
+                <p class="card-text mb-0">{{order.full_name}}</p>
+                <p class="card-text mb-0">{{order.full_address}}</p>
+                <p class="card-text mb-0">{{order.city}}, {{order.state}}</p>
+                <p class="card-text mb-0">{{order.country}}</p>
+                <p class="card-text mb-0">{{order.email}}</p>
+                <p class="card-text mb-0">{{order.phone}}</p>
+                {% if order.order_note %}
+                <b>Order Note: </b> {{order.order_note}}
+                {% endif %}
+            </div>
+        </div>
 
-    <div class="card">
-      <h5 class="card-header">Payment Method</h5>
-      <div class="card-body">
-        <p class="card-text">Paypal</p>
-      </div>
-    </div>
+        <div class="card">
+            <h5 class="card-header">Payment Method</h5>
+            <div class="card-body">
+                <p class="card-text">PayPal / Card</p>
+            </div>
+        </div>
 
-    <div class="card">
-      <h5 class="card-header">Review Products</h5>
-      <div class="card-body">
-        <table class="table table-borderless table-shopping-cart">
-        <thead class="text-muted">
-        <tr class="small text-uppercase">
-          <th scope="col">Product</th>
-          <th scope="col" width="120">Quantity</th>
-          <th scope="col" width="120">Price</th>
-        </tr>
-        </thead>
-        <tbody>
+        <div class="card">
+            <h5 class="card-header">Review Products</h5>
+            <div class="card-body">
+                <table class="table table-borderless table-shopping-cart">
+                <thead class="text-muted">
+                <tr class="small text-uppercase">
+                    <th scope="col">Product</th>
+                    <th scope="col" width="120">Quantity</th>
+                    <th scope="col" width="120">Price</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for cart_item in cart_items %}
+                <tr>
+                    <td>
+                        <figure class="itemside align-items-center">
+                            <div class="aside"><img src="{{ cart_item.product.images.url }}" class="img-sm"></div>
+                            <figcaption class="info">
+                                <a href="{{ cart_item.product.get_url}}" class="title text-dark">{{ cart_item.product.product_name }}</a>
+                                <p class="text-muted small">
+                                    {% if cart_item.variations.all %}
+                                        {% for item in cart_item.variations.all %}
+                                            {{ item.variation_category | capfirst}} : {{ item.variation_value | capfirst}}<br>
+                                        {% endfor %}
+                                    {% endif %}
+                                </p>
+                            </figcaption>
+                        </figure>
+                    </td>
+                    <td>
+                        <label>{{ cart_item.quantity }}</label>
+                    </td>
+                    <td>
+                        <div class="price-wrap">
+                            <var class="price">NPR {{ cart_item.sub_total }}</var>
+                            <small class="text-muted">NPR {{ cart_item.product.price }} each</small>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+            </div>
+        </div>
+    </aside>
 
-        {% for cart_item in cart_items %}
-        <tr>
-        	<td>
-        		<figure class="itemside align-items-center">
-        			<div class="aside"><img src="{{ cart_item.product.images.url }}" class="img-sm"></div>
-        			<figcaption class="info">
-        				<a href="{{ cart_item.product.get_url}}" class="title text-dark">{{ cart_item.product.product_name }}</a>
-        				<p class="text-muted small">
-        					{% if cart_item.variations.all %}
-        						{% for item in cart_item.variations.all %}
-        							{{ item.variation_category | capfirst}} : {{ item.variation_value | capfirst}}<br>
-        						{% endfor %}
-        					{% endif %}
-        				</p>
-        			</figcaption>
-        		</figure>
-        	</td>
-        	<td>
-        		<!-- col.// -->
-        					<label for="">{{ cart_item.quantity }}</label>
-        	</td>
-        	<td>
-        		<div class="price-wrap">
-        			<var class="price">$ {{ cart_item.sub_total }}</var>
-        			<small class="text-muted">$ {{ cart_item.product.price }} each </small>
-        		</div> <!-- price-wrap .// -->
-        	</td>
-        </tr>
-        {% endfor %}
+    <aside class="col-lg-4">
+        <div class="card">
+        <div class="card-body">
+            <dl class="dlist-align">
+                <dt>Total price:</dt>
+                <dd class="text-right">NPR {{total}}</dd>
+            </dl>
+            <dl class="dlist-align">
+                <dt>Tax:</dt>
+                <dd class="text-right">NPR {{tax}}</dd>
+            </dl>
+            <dl class="dlist-align">
+                <dt>Grand Total:</dt>
+                <dd class="text-right text-dark b"><strong>NPR {{grand_total}}</strong></dd>
+            </dl>
+            <hr>
+            <p class="text-center mb-3">
+                <img src="{% static './images/misc/payments.png' %}" height="26">
+            </p>
 
-        </tbody>
-        </table>
-      </div>
-    </div>
+            <!-- PayPal Section -->
+            <div id="paypal-section">
+                <div id="paypal-button-container"></div>
+                <hr>
+                <button id="show-stripe-btn" style="width:100%; padding:10px; font-size:15px; background:#635bff; color:#fff; border:none; border-radius:4px; cursor:pointer; margin-top:5px;">
+                    💳 Pay with Card (Stripe)
+                </button>
+            </div>
 
-	</aside> <!-- col.// -->
-	<aside class="col-lg-4">
+            <!-- Stripe Card Form -->
+            <div id="stripe-section" style="display:none;">
+                <button id="back-to-paypal-btn" style="background:none; border:none; color:#635bff; cursor:pointer; padding:0; margin-bottom:15px; font-size:13px;">
+                    ← Back
+                </button>
+                <div id="card-element" style="border: 1px solid #ced4da; padding: 12px; border-radius: 4px; background: #fff;"></div>
+                <div id="card-errors" class="text-danger mt-2" role="alert"></div>
+                <button id="stripe-pay-btn" style="width:100%; padding:12px; font-size:15px; background:#635bff; color:#fff; border:none; border-radius:4px; cursor:pointer; margin-top:15px;">
+                    💳 Pay $<span id="usd-amount"></span> with Stripe
+                </button>
+            </div>
 
-		<div class="card">
-		<div class="card-body">
-			<dl class="dlist-align">
-			  <dt>Total price:</dt>
-			  <dd class="text-right">$ {{total}}</dd>
-			</dl>
-			<dl class="dlist-align">
-			  <dt>Tax:</dt>
-			  <dd class="text-right"> $ {{tax}}</dd>
-			</dl>
-			<dl class="dlist-align">
-			  <dt>Grand Total:</dt>
-			  <dd class="text-right text-dark b"><strong>$ {{grand_total}}</strong></dd>
-			</dl>
-			<hr>
-			<p class="text-center mb-3">
-				<img src="{% static './images/misc/payments.png' %}" height="26">
-			</p>
-			<div id="paypal-button-container"></div>
-		</div> <!-- card-body.// -->
-		</div> <!-- card.// -->
-
-</aside> <!-- col.// -->
-
-
-</div> <!-- row.// -->
-
-<!-- ============================ COMPONENT 1 END .// ================================= -->
-
-</div> <!-- container .//  -->
+        </div>
+        </div>
+    </aside>
+</div>
+</div>
 </section>
-<!-- ========================= SECTION CONTENT END// ========================= -->
+
+<!-- PayPal SDK — only loaded on this page with intent=capture -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency=USD&intent=capture"></script>
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
 
 <script>
+    // ── Shared variables ────────────────────────────────────────────
+    var amount       = ({{ grand_total }} / 155).toFixed(2);
+    var url          = "{% url 'payments' %}";
+    var stripeUrl    = "{% url 'stripe_payment' %}";
+    var csrftoken    = getCookie('csrftoken');
+    var orderID      = "{{ order.order_number }}";
+    var redirect_url = "{% url 'order_complete' %}";
 
+    // Show USD amount on Stripe button
+    document.getElementById('usd-amount').textContent = amount;
 
-				function getCookie(name) {
-				    let cookieValue = null;
-				    if (document.cookie && document.cookie !== '') {
-				        const cookies = document.cookie.split(';');
-				        for (let i = 0; i < cookies.length; i++) {
-				            const cookie = cookies[i].trim();
-				            // Does this cookie string begin with the name we want?
-				            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-				                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-				                break;
-				            }
-				        }
-				    }
-				    return cookieValue;
-				}
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
+    // ── PayPal ──────────────────────────────────────────────────────
+    paypal.Buttons({
+        style: {
+            color: 'blue',
+            shape: 'rect',
+            label: 'pay',
+            height: 40
+        },
 
-				var amount = {{ grand_total }}
-				var url = "{% url 'payments' %}"
-				var csrftoken = getCookie('csrftoken');
-				var orderID = "{{order.order_number}}"
-				var payment_method = 'PayPal'
-				var redirect_url = "{% url 'order_complete' %}"
-			 // Render the PayPal button into #paypal-button-container
-			 paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                intent: 'CAPTURE',
+                purchase_units: [{
+                    amount: {
+                        value: amount,
+                        currency_code: 'USD'
+                    }
+                }]
+            });
+        },
 
-				 style: {
-					 color: 'blue',
-					 shape:'rect',
-					 label:'pay',
-					 height: 40
-				 },
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
 
-					 // Set up the transaction
-					 createOrder: function(data, actions) {
-							 return actions.order.create({
-									 purchase_units: [{
-											 amount: {
-													 value: amount,
-											 }
-									 }]
-							 });
-					 },
+                // ── Get the real capture ID ──────────────────────────
+                var captureID = details.purchase_units[0].payments.captures[0].id;
 
-					 // Finalize the transaction
-					 onApprove: function(data, actions) {
-							 return actions.order.capture().then(function(details) {
-									 // Show a success message to the buyer
-									 console.log(details);
-									 sendData()
-									 function sendData(){
-										 fetch(url, {
-											 method: "POST",
-											 headers: {
-												 "Content-type": "application/json",
-												 "X-CSRFToken": csrftoken,
-											 },
-											 body: JSON.stringify({
-												 orderID: orderID,
-												 transID: details.id,
-												 payment_method: payment_method,
-												 status: details.status,
-											 }),
-										 })
-										 .then((response) => response.json())
-										 .then((data) => {
-											 window.location.href = redirect_url + '?order_number='+data.order_number+'&payment_id='+data.transID;
-										 });
-									 }
-							 });
-					 }
+                console.log("PayPal capture complete");
+                console.log("Capture ID:", captureID);
+                console.log("Status:", details.status);
 
-			 }).render('#paypal-button-container');
-	 </script>
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-type": "application/json",
+                        "X-CSRFToken": csrftoken,
+                    },
+                    body: JSON.stringify({
+                        orderID: orderID,
+                        transID: captureID,       // ← real capture ID
+                        payment_method: 'PayPal',
+                        status: details.status,
+                        usdAmount: amount,
+                    }),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    window.location.href = redirect_url + '?order_number=' + data.order_number + '&payment_id=' + data.transID;
+                });
+            });
+        },
+
+        onError: function(err) {
+            console.error("PayPal error:", err);
+            alert("PayPal payment failed. Please try again.");
+        }
+
+    }).render('#paypal-button-container');
+
+    // ── Toggle Stripe / PayPal ──────────────────────────────────────
+    document.getElementById('show-stripe-btn').addEventListener('click', function() {
+        document.getElementById('paypal-section').style.display = 'none';
+        document.getElementById('stripe-section').style.display = 'block';
+    });
+
+    document.getElementById('back-to-paypal-btn').addEventListener('click', function() {
+        document.getElementById('stripe-section').style.display = 'none';
+        document.getElementById('paypal-section').style.display = 'block';
+    });
+
+    // ── Stripe ──────────────────────────────────────────────────────
+    var stripe      = Stripe("{{ STRIPE_PUBLISHABLE_KEY }}");
+    var elements    = stripe.elements();
+    var cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#32325d',
+                '::placeholder': { color: '#aab7c4' }
+            },
+            invalid: { color: '#dc3545' }
+        }
+    });
+    cardElement.mount('#card-element');
+
+    cardElement.on('change', function(event) {
+        document.getElementById('card-errors').textContent = event.error ? event.error.message : '';
+    });
+
+    document.getElementById('stripe-pay-btn').addEventListener('click', async function() {
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+
+        const { paymentMethod, error } = await stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+        });
+
+        if (error) {
+            document.getElementById('card-errors').textContent = error.message;
+            btn.disabled = false;
+            btn.innerHTML = '💳 Pay $<span id="usd-amount">' + amount + '</span> with Stripe';
+            return;
+        }
+
+        fetch(stripeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                orderID: orderID,
+                payment_method_id: paymentMethod.id,
+                usdAmount: amount,
+            }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('card-errors').textContent = data.error;
+                btn.disabled = false;
+                btn.innerHTML = '💳 Pay $<span id="usd-amount">' + amount + '</span> with Stripe';
+            } else {
+                window.location.href = redirect_url + '?order_number=' + data.order_number + '&payment_id=' + data.transID;
+            }
+        });
+    });
+
+</script>
 
 {% endblock %}

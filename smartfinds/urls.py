@@ -1,33 +1,41 @@
-"""
-URL configuration for smartfinds project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
 from . import views
 from django.conf.urls.static import static
 from django.conf import settings
+from django.views.static import serve
+import os
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',views.home, name='home'),
+    path('', views.home, name='home'),
     path('store/', include('store.urls')),
     path('cart/', include('carts.urls')),
     path('accounts/', include('accounts.urls')),
     path('orders/', include('orders.urls')),
-    path('virtual-tryon/', views.virtual_tryon, name='virtual_tryon'),
+    path('virtual-tryon/', views.tryon_page, name='virtual_tryon'),
+    # Shirts Try-On
+    path('tryon/launch/', views.launch_tryon_app, name='launch_tryon_app'),
+    path('tryon/stop/',   views.stop_tryon_app,   name='stop_tryon_app'),
+    path('tryon/status/', views.tryon_status,     name='tryon_status'),
+
+    path('photo-tryon/', views.photo_tryon, name='photo_tryon'),
+    path('add-tryon-to-cart/', views.add_tryon_item_to_cart, name='add_tryon_item_to_cart'),
+
+    # Glasses Try-On
+    path('tryon/glasses/launch/',  views.launch_glasses_app, name='launch_glasses_app'),
+    path('tryon/glasses/stop/',    views.stop_glasses_app,   name='stop_glasses_app'),
+    path('tryon/glasses/status/',  views.glasses_status,     name='glasses_status'),
+
     path('image-search/', views.image_search, name='image_search'),
-    path('api/tryon/process-frame/', views.tryon_process_frame, name='tryon_process_frame'),
+    path('ml-images/<str:filename>', lambda request, filename: serve(
+        request,
+        filename,
+        document_root=os.path.join(settings.BASE_DIR, 'ml', 'images')
+    )),
+    path('available-images/<str:filename>', lambda request, filename: serve(
+    request,
+    filename,
+    document_root=os.path.join(settings.BASE_DIR, 'ml', 'available')
+)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

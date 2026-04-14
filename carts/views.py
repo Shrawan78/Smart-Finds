@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from store.models import Product, Variation
 from .models import Cart, CartItem
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
@@ -65,7 +65,11 @@ def add_cart(request, product_id):
                 cart_item.variations.clear()
                 cart_item.variations.add(*product_variation)
             cart_item.save()
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'ok', 'message': 'Added to cart!'})
         return redirect('cart')
+
     #When the user is not authenticated
     else:
         product_variation = []
@@ -126,6 +130,9 @@ def add_cart(request, product_id):
                 cart_item.variations.clear()
                 cart_item.variations.add(*product_variation)
             cart_item.save()
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'ok', 'message': 'Added to cart!'})
         return redirect('cart')
 
 
