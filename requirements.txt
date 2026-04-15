@@ -26,8 +26,8 @@ grpcio==1.74.0
 gunicorn==21.2.0
 html5lib==1.1
 idna==3.11
-jax==0.4.17
-jaxlib==0.4.17
+jax==0.4.38
+jaxlib==0.4.38
 Jinja2==3.1.6
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
