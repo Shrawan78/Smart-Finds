@@ -4,7 +4,7 @@ from . import views
 from django.conf.urls.static import static
 from django.conf import settings
 from django.views.static import serve
-import os
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,16 +26,4 @@ urlpatterns = [
     path('tryon/glasses/launch/',  views.launch_glasses_app, name='launch_glasses_app'),
     path('tryon/glasses/stop/',    views.stop_glasses_app,   name='stop_glasses_app'),
     path('tryon/glasses/status/',  views.glasses_status,     name='glasses_status'),
-
-    path('image-search/', views.image_search, name='image_search'),
-    path('ml-images/<str:filename>', lambda request, filename: serve(
-        request,
-        filename,
-        document_root=os.path.join(settings.BASE_DIR, 'ml', 'images')
-    )),
-    path('available-images/<str:filename>', lambda request, filename: serve(
-    request,
-    filename,
-    document_root=os.path.join(settings.BASE_DIR, 'ml', 'available')
-)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

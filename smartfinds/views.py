@@ -4,24 +4,17 @@ from carts.models import Cart, CartItem
 
 import os
 import sys
-import pickle
 import subprocess
 import cv2
 import numpy as np
 import base64
 import json
-import io, math
+import io
 import traceback
 from PIL import Image
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from numpy.linalg import norm
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.layers import GlobalMaxPool2D
-from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
-from sklearn.neighbors import NearestNeighbors
-import tensorflow
 from django.core.files.storage import FileSystemStorage
 import mediapipe as mp
 from PIL import Image as PILImage
@@ -101,7 +94,6 @@ def launch_glasses_app(request):
         _glasses_process = None
 
     try:
-        # Place virtual_glasses_tryon.py next to the shirt script
         script_path = r"F:\SmartFinds\virtual try-on\virtual_glasses_tryon.py"
 
         if not os.path.exists(script_path):
@@ -192,103 +184,6 @@ def tryon_page(request):
         "glasses": glasses_list,
     })
 
-
-# ── ML Model Setup (Lazy Loading) ─────────────────────────────────────
-ML_DIR = os.path.join(settings.BASE_DIR, 'ml')
-
-feature_list = None
-filenames    = None
-ml_model     = None
-neighbors    = None
-
-# Model 2 — store (52 images)
-store_feature_list = None
-store_filenames    = None
-store_neighbors    = None
-
-
-def load_ml_model():
-    global feature_list, filenames, ml_model, neighbors
-    if ml_model is None:
-        print("Loading ML model...")
-        feature_list = np.array(pickle.load(open(os.path.join(ML_DIR, 'embeddings.pkl'), 'rb')))
-        filenames    = pickle.load(open(os.path.join(ML_DIR, 'filenames.pkl'), 'rb'))
-        ml_model     = ResNet50(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
-        ml_model.trainable = False
-        ml_model     = tensorflow.keras.Sequential([ml_model, GlobalMaxPool2D()])
-        neighbors    = NearestNeighbors(n_neighbors=5, algorithm="brute", metric="euclidean")
-        neighbors.fit(feature_list)
-        print("ML model loaded successfully!")
-
-def load_store_model():
-    global store_feature_list, store_filenames, store_neighbors, ml_model
-    if ml_model is None:
-        load_ml_model()
-    if store_neighbors is None:
-        print("Loading store model...")
-        store_feature_list = np.array(pickle.load(open(os.path.join(ML_DIR, 'store_embeddings.pkl'), 'rb')))
-        store_filenames    = pickle.load(open(os.path.join(ML_DIR, 'store_filenames.pkl'), 'rb'))
-        store_neighbors    = NearestNeighbors(n_neighbors=3, algorithm="brute", metric="euclidean")
-        store_neighbors.fit(store_feature_list)
-        print("Store model loaded successfully!")
-
-
-def extract_feature(img_path, model):
-    img              = image.load_img(img_path, target_size=(224, 224))
-    img_array        = image.img_to_array(img)
-    expanded_img     = np.expand_dims(img_array, axis=0)
-    preprocessed_img = preprocess_input(expanded_img)
-    result           = model.predict(preprocessed_img, verbose=0).flatten()
-    return result / norm(result)
-
-
-# ── Image Search ──────────────────────────────────────────────────────
-def image_search(request):
-    results       = []
-    store_results = []
-    error         = None
-
-    if request.method == 'POST' and request.FILES.get('image'):
-        try:
-            load_ml_model()
-            load_store_model()
-
-            uploaded_file = request.FILES['image']
-            fs            = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'media', 'uploads'))
-            filename      = fs.save(uploaded_file.name, uploaded_file)
-            uploaded_path = fs.path(filename)
-
-            features = extract_feature(uploaded_path, ml_model)
-
-            # Model 1 — 5 results from ml/images/
-            distances, indices = neighbors.kneighbors([features])
-            for idx in indices[0]:
-                img_name = os.path.basename(filenames[idx])
-                results.append(f'/ml-images/{img_name}')
-
-            # Model 2 — 3 results from ml/available/
-            s_distances, s_indices = store_neighbors.kneighbors([features])
-            for idx in s_indices[0]:
-                img_name  = os.path.basename(store_filenames[idx])
-                slug      = os.path.splitext(img_name)[0]
-                product   = Product.objects.filter(slug=slug, is_available=True).first()
-                store_results.append({
-                    'img_url': f'/available-images/{img_name}',
-                    'price':   product.price if product else None,
-                    'name':    product.product_name if product else slug,
-                })
-
-            os.remove(uploaded_path)
-
-        except Exception as e:
-            error = f"Error processing image: {str(e)}"
-            print(error)
-
-    return render(request, 'image_search.html', {
-        'results':       results,
-        'store_results': store_results,
-        'error':         error,
-    })
 
 @csrf_exempt
 def photo_tryon(request):
@@ -436,6 +331,7 @@ def overlay_transparent(background, overlay, x, y):
 
     return bg
 
+
 @csrf_exempt
 def add_tryon_item_to_cart(request):
     if request.method != 'POST':
@@ -481,6 +377,7 @@ def add_tryon_item_to_cart(request):
     except Exception as e:
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)})
+
 
 def coming_soon(request):
     return HttpResponse("Coming Soon")
