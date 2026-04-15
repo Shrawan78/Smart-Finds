@@ -81,7 +81,6 @@ smmap==5.0.2
 sqlparse==0.5.5
 streamlit==1.52.2
 stripe==14.4.1
-svglib==1.6.0
 tenacity==9.1.2
 toml==0.10.2
 tornado==6.5.4
